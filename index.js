@@ -24,13 +24,20 @@ async function run() {
     await client.connect();
     const database = client.db('agency');
     const courseCollection = database.collection('course');
+    const reviewsCollection = database.collection('reviews');
 
     //get api
     app.get('/course', async (req, res) => {
       const cursor = courseCollection.find({});
       const courses = await cursor.toArray();
       res.send(courses);
-  })
+  });
+
+  app.get('/reviews', async (req, res) => {
+    const cursor = reviewsCollection.find({});
+    const reviews = await cursor.toArray();
+    res.send(reviews);
+  });
 
   //Post api
   app.post('/course', async (req, res) => {
@@ -41,7 +48,16 @@ async function run() {
 
     console.log(result);
     res.send(result);
-}) 
+});
+
+app.post('/reviews', async(req, res)=>{
+  const newReview = (req.body);
+  console.log('hit the post api',newReview);
+
+  const result = await reviewsCollection.insertOne(newReview);
+  console.log(result);
+  res.json(result);
+})
   } finally {
     //await client.close();
   }
