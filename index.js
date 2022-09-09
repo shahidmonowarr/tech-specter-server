@@ -1,7 +1,7 @@
 const express = require("express");
 const cors = require("cors");
-const { MongoClient, ServerApiVersion } = require("mongodb");
-require('dotenv').config();
+const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
+require("dotenv").config();
 const port = process.env.PORT || 5000;
 
 const app = express();
@@ -22,42 +22,66 @@ const client = new MongoClient(uri, {
 async function run() {
   try {
     await client.connect();
-    const database = client.db('agency');
-    const courseCollection = database.collection('course');
-    const reviewsCollection = database.collection('reviews');
+    const database = client.db("agency");
+    const courseCollection = database.collection("course");
+    const reviewsCollection = database.collection("reviews");
+    const orderCollection = database.collection("order");
 
     //get api
-    app.get('/course', async (req, res) => {
+    app.get("/course", async (req, res) => {
       const cursor = courseCollection.find({});
       const courses = await cursor.toArray();
       res.send(courses);
-  });
+    });
 
-  app.get('/reviews', async (req, res) => {
-    const cursor = reviewsCollection.find({});
-    const reviews = await cursor.toArray();
-    res.send(reviews);
-  });
+    app.get("/course/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: ObjectId(id) };
+      const course = await courseCollection.findOne(query);
+      res.send(course);
+    });
 
-  //Post api
-  app.post('/course', async (req, res) => {
-    const course = req.body;
-    console.log('hit the post api', course);
+    app.get("/reviews", async (req, res) => {
+      const cursor = reviewsCollection.find({});
+      const reviews = await cursor.toArray();
+      res.send(reviews);
+    });
 
-    const result = await courseCollection.insertOne(course);
+    //Post api
+    app.post("/course", async (req, res) => {
+      const course = req.body;
+      console.log("hit the post api", course);
 
-    console.log(result);
-    res.send(result);
-});
+      const result = await courseCollection.insertOne(course);
 
-app.post('/reviews', async(req, res)=>{
-  const newReview = (req.body);
-  console.log('hit the post api',newReview);
+      console.log(result);
+      res.send(result);
+    });
 
-  const result = await reviewsCollection.insertOne(newReview);
-  console.log(result);
-  res.json(result);
-})
+    app.post("/reviews", async (req, res) => {
+      const newReview = req.body;
+      console.log("hit the post api", newReview);
+
+      const result = await reviewsCollection.insertOne(newReview);
+      res.json(result);
+    });
+
+    //order
+    app.get('/order', async (req, res)=>{
+      const email = req.query.email;
+      console.log(email);
+      const query = {email: email};
+      const cursor = orderCollection.find(query);
+      const orders = await cursor.toArray();
+      res.send(orders);
+    })
+
+    app.post('/order', async(req, res)=>{
+      const order = req.body;
+      const result = await orderCollection.insertOne(order);
+      console.log(result);
+      res.send(result);
+    })
   } finally {
     //await client.close();
   }
