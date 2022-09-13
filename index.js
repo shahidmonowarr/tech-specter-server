@@ -1,5 +1,6 @@
 const express = require("express");
 const cors = require("cors");
+const jwt = require('jsonwebtoken');
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 require("dotenv").config();
 const port = process.env.PORT || 5000;
@@ -26,7 +27,34 @@ async function run() {
     const courseCollection = database.collection("course");
     const reviewsCollection = database.collection("reviews");
     const orderCollection = database.collection("order");
+    const userCollection = database.collection("users");
 
+    //auth
+    
+    // app.post('/login', async(req, res)=>{
+    //   const user = req.body;
+    //   const accessToken = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, {
+    //     expiresIn: '1d'
+    //   });
+    //   res.send({accessToken});
+    // });
+
+    app.put('/user/:email', async (req, res) =>{
+      const email = req.params.email;
+      const user = req.body;
+      const filter = {email: email};
+      const options = { upsert: true};
+      const updateDoc = {
+        $set: user,
+      };
+      const result = await userCollection.updateOne(filter, updateDoc, options);
+      const token = jwt.sign({email: email}, process.env.ACCESS_TOKEN_SECRET, {
+        expiresIn: '1d'
+      });
+      res.send({result, token});
+    })
+
+    //service api
     //get api
     app.get("/course", async (req, res) => {
       const cursor = courseCollection.find({});
@@ -41,11 +69,7 @@ async function run() {
       res.send(course);
     });
 
-    app.get("/reviews", async (req, res) => {
-      const cursor = reviewsCollection.find({});
-      const reviews = await cursor.toArray();
-      res.send(reviews);
-    });
+    
 
     //Post api
     app.post("/course", async (req, res) => {
@@ -57,6 +81,13 @@ async function run() {
       console.log(result);
       res.send(result);
     });
+    
+    //review api
+    app.get("/reviews", async (req, res) => {
+      const cursor = reviewsCollection.find({});
+      const reviews = await cursor.toArray();
+      res.send(reviews);
+    });
 
     app.post("/reviews", async (req, res) => {
       const newReview = req.body;
@@ -66,7 +97,7 @@ async function run() {
       res.json(result);
     });
 
-    //order
+    //order api
     app.get('/order', async (req, res)=>{
       const email = req.query.email;
       console.log(email);
@@ -75,6 +106,14 @@ async function run() {
       const orders = await cursor.toArray();
       res.send(orders);
     })
+
+    // get order by id
+    app.get('/orders/:id', async(req, res) => {
+      const id = req.params.id;
+      const query = { _id: ObjectId(id)};
+      const result = await orderCollection.findOne(query);
+      res.json(result);
+  })
 
     app.post('/order', async(req, res)=>{
       const order = req.body;
