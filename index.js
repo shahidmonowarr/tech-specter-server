@@ -162,12 +162,19 @@ async function run() {
     });
 
     // get order by id
-    app.get("/orders/:id", async (req, res) => {
+    app.get("/order/:id", async (req, res) => {
       const id = req.params.id;
       const query = { _id: ObjectId(id) };
       const result = await orderCollection.findOne(query);
       res.json(result);
     });
+
+    app.delete('/order/:id', verifyJWT, async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: ObjectId(id)};
+      const result = await orderCollection.deleteOne(query);
+      res.json(result);
+  });
 
     app.post("/order", async (req, res) => {
       const order = req.body;
