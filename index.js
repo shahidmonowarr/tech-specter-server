@@ -45,6 +45,17 @@ async function run() {
     const orderCollection = database.collection("order");
     const userCollection = database.collection("users");
 
+    const verifyAdmin = async (req, res, next)=>{
+      const requester = req.decoded.email;
+      const requesterAccount = await userCollection.findOne({email: requester});
+      if(requesterAccount.role === 'admin'){
+        next();
+      }
+      else{
+        res.status(403).send({message: 'Forbidden'});
+      }
+    }
+
     //auth
 
     // app.post('/login', async(req, res)=>{
@@ -67,22 +78,15 @@ async function run() {
       res.send({admin: isAdmin});
     })
 
-    app.put("/user/admin/:email", verifyJWT, async (req, res) => {
+    app.put("/user/admin/:email", verifyJWT, verifyAdmin, async (req, res) => {
       const email = req.params.email;
-      const requester = req.decoded.email;
-      const requesterAccount = await userCollection.findOne({email: requester});
-      if(requesterAccount.role === 'admin'){
+      
         const filter = { email: email };
       const updateDoc = {
         $set: {role: 'admin'},
       };
       const result = await userCollection.updateOne(filter, updateDoc);
       res.send(result);
-      }
-      else{
-        res.status(403).send({message: 'Forbidden'});
-      }
-      
     });
 
 
@@ -147,6 +151,15 @@ async function run() {
     });
 
     //order api
+    app.get('/order', async(req,res)=>{
+
+      const query ={}
+      const cursor = orderCollection.find(query)
+      const allOrder = await cursor.toArray()
+      res.send(allOrder)
+    
+    })
+
     app.get("/order", verifyJWT, async (req, res) => {
       const email = req.query.email;
       const decodedEmail = req.decoded.email;
@@ -182,6 +195,29 @@ async function run() {
       console.log(result);
       res.send(result);
     });
+
+    // for update
+    app.put('/order/:id', async (req, res) => {
+      const updateOrder = req.body[0];
+      const id = req.params.id;
+      // console.log(updateOrder);
+      const filter = { _id: ObjectId(id) };
+
+      const options = { upsert: true };
+
+      const updateDoc = {
+          $set: {
+              email: updateOrder.email,
+              price: updateOrder.price,
+              status: updateOrder.status,
+              description: updateOrder.description,
+              phone: updateOrder.phone
+          }
+      };
+      const result = await orderCollection.updateOne(filter, updateDoc, options);
+      console.log(result);
+      res.send(result);
+  });
   } finally {
     //await client.close();
   }
