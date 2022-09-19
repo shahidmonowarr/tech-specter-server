@@ -3,6 +3,8 @@ const cors = require("cors");
 const jwt = require("jsonwebtoken");
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 require("dotenv").config();
+const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+
 const port = process.env.PORT || 5000;
 
 const app = express();
@@ -44,6 +46,7 @@ async function run() {
     const reviewsCollection = database.collection("reviews");
     const orderCollection = database.collection("order");
     const userCollection = database.collection("users");
+    const paymentCollection = database.collection('payment');
 
     const verifyAdmin = async (req, res, next)=>{
       const requester = req.decoded.email;
@@ -179,7 +182,7 @@ async function run() {
       const id = req.params.id;
       const query = { _id: ObjectId(id) };
       const result = await orderCollection.findOne(query);
-      res.json(result);
+      res.send(result);
     });
 
     app.delete('/order/:id', verifyJWT, async (req, res) => {
@@ -218,6 +221,35 @@ async function run() {
       console.log(result);
       res.send(result);
   });
+
+  app.patch('/order/:id', async(req, res)=>{
+    const id = req.params.id;
+    const payment = req.body;
+    const filter = {_id: ObjectId(id)};
+    const updateDoc = {
+      $set: {
+        paid: true,
+        transactionId: payment.transactionId
+      }
+    } 
+    const result = await paymentCollection.insertOne(payment);
+    const updatedOrder = await orderCollection.updateOne(filter, updateDoc);
+    res.send(updateDoc);
+  })
+
+  //payment
+  app.post('/create-payment-intent', async(req, res)=>{
+    const service = req.body;
+    const price = service.price;
+    const amount = price*100;
+    const paymentIntent = await stripe.paymentIntents.create({
+      amount : amount,
+      currency: 'usd',
+      payment_method_types:['card']
+    });
+    res.send({clientSecret: paymentIntent.client_secret});
+  })
+
   } finally {
     //await client.close();
   }
