@@ -127,6 +127,13 @@ async function run() {
       res.send(course);
     });
 
+    app.delete('/course/:id', async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: ObjectId(id)};
+      const result = await courseCollection.deleteOne(query);
+      res.json(result);
+  });
+
     //Post api
     app.post("/course", async (req, res) => {
       const course = req.body;
