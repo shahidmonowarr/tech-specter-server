@@ -248,7 +248,7 @@ async function run() {
     app.post("/order", async (req, res) => {
       const order = req.body;
       const result = await orderCollection.insertOne(order);
-      console.log(result);
+      // console.log(result);
       res.send(result);
     });
 
@@ -271,7 +271,7 @@ async function run() {
           }
       };
       const result = await orderCollection.updateOne(filter, updateDoc, options);
-      console.log(result);
+      // console.log(result);
       res.send(result);
   });
 
