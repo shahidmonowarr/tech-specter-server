@@ -43,6 +43,7 @@ async function run() {
     await client.connect();
     const database = client.db("agency");
     const courseCollection = database.collection("course");
+    const travelCollection = database.collection("travel");
     const reviewsCollection = database.collection("reviews");
     const orderCollection = database.collection("order");
     const userCollection = database.collection("users");
@@ -112,7 +113,9 @@ async function run() {
       res.send({ result, token });
     });
 
-    //service api
+    //All Service api
+
+    //Course api
     //get api
     app.get("/course", async (req, res) => {
       const cursor = courseCollection.find({});
@@ -120,6 +123,7 @@ async function run() {
       res.send(courses);
     });
 
+    //get single course api
     app.get("/course/:id", async (req, res) => {
       const id = req.params.id;
       const query = { _id: ObjectId(id) };
@@ -127,6 +131,7 @@ async function run() {
       res.send(course);
     });
 
+    //delete single course api
     app.delete('/course/:id', async (req, res) => {
       const id = req.params.id;
       const query = { _id: ObjectId(id)};
@@ -145,13 +150,51 @@ async function run() {
       res.send(result);
     });
 
-    //review api
+    //travel api
+    //get api
+    app.get("/travel", async (req, res) => {
+      const cursor = travelCollection.find({});
+      const places = await cursor.toArray();
+      res.send(places);
+    });
+
+    //get single place api
+    app.get("/travel/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: ObjectId(id) };
+      const place = await travelCollection.findOne(query);
+      res.send(place);
+    });
+
+    //Post api
+    app.post("/travel", async (req, res) => {
+      const place = req.body;
+      console.log("hit the post api", place);
+
+      const result = await travelCollection.insertOne(place);
+
+      console.log(result);
+      res.send(result);
+    });
+
+    //delete single place api
+    app.delete('/travel/:id', async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: ObjectId(id)};
+      const result = await travelCollection.deleteOne(query);
+      res.json(result);
+  });
+
+
+    //Review api
+    //get api
     app.get("/reviews", async (req, res) => {
       const cursor = reviewsCollection.find({});
       const reviews = await cursor.toArray();
       res.send(reviews);
     });
 
+    //post api
     app.post("/reviews", async (req, res) => {
       const newReview = req.body;
       console.log("hit the post api", newReview);
@@ -161,15 +204,16 @@ async function run() {
     });
 
     //order api
+    //get api
     app.get('/order', async(req,res)=>{
 
       const query ={}
       const cursor = orderCollection.find(query)
       const allOrder = await cursor.toArray()
       res.send(allOrder)
-    
     })
 
+    //get order by email
     app.get("/order", verifyJWT, async (req, res) => {
       const email = req.query.email;
       const decodedEmail = req.decoded.email;
@@ -184,7 +228,7 @@ async function run() {
       }
     });
 
-    // get order by id
+    // get single order by id
     app.get("/order/:id", async (req, res) => {
       const id = req.params.id;
       const query = { _id: ObjectId(id) };
@@ -192,6 +236,7 @@ async function run() {
       res.send(result);
     });
 
+    //delete single order api
     app.delete('/order/:id', async (req, res) => {
       const id = req.params.id;
       const query = { _id: ObjectId(id)};
@@ -199,6 +244,7 @@ async function run() {
       res.json(result);
   });
 
+    //post api
     app.post("/order", async (req, res) => {
       const order = req.body;
       const result = await orderCollection.insertOne(order);
@@ -229,6 +275,7 @@ async function run() {
       res.send(result);
   });
 
+  //for partial update
   app.patch('/order/:id', async(req, res)=>{
     const id = req.params.id;
     const payment = req.body;
@@ -244,7 +291,7 @@ async function run() {
     res.send(updateDoc);
   })
 
-  //payment
+  //payment api
   app.post('/create-payment-intent', async(req, res)=>{
     const service = req.body;
     const price = service.price;
