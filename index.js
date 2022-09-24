@@ -215,17 +215,22 @@ async function run() {
 
     //get order by email
     app.get("/order", verifyJWT, async (req, res) => {
-      const email = req.query.email;
-      const decodedEmail = req.decoded.email;
-      if (email === decodedEmail) {
-        const query = { email: email };
-        const cursor = orderCollection.find(query);
-        const orders = await cursor.toArray();
-        return res.send(orders);
-      }
-      else{
-        return res.status(403).send({message: 'Forbidden access'});
-      }
+      // const email = req.query.email;
+      // const decodedEmail = req.decoded.email;
+      // if (email === decodedEmail) {
+      //   const query = { email: email };
+      //   const cursor = orderCollection.find(query);
+      //   const orders = await cursor.toArray();
+      //   return res.send(orders);
+      // }
+      // else{
+      //   return res.status(403).send({message: 'Forbidden access'});
+      // }
+      const email =req.query.email
+  const query ={email: email}
+  const cursor = orderCollection.find(query)
+  const SingleOrder = await cursor.toArray()
+  res.send(SingleOrder)
     });
 
     // get single order by id
