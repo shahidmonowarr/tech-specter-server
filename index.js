@@ -221,7 +221,7 @@ async function run() {
         const query = { email: email };
         const cursor = orderCollection.find(query);
         const orders = await cursor.toArray();
-        res.send(orders);
+        return res.send(orders);
       }
       else{
         return res.status(403).send({message: 'Forbidden access'});
