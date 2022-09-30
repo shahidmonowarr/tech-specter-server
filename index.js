@@ -15,7 +15,8 @@ app.use(express.json());
 
 //database connection
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.3bc4k.mongodb.net/?retryWrites=true&w=majority`;
-console.log(uri);
+// console.log(uri);
+
 const client = new MongoClient(uri, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
@@ -48,6 +49,7 @@ async function run() {
     const orderCollection = database.collection("order");
     const userCollection = database.collection("users");
     const paymentCollection = database.collection('payment');
+    const BlogsCollection = database.collection("blogs");
 
     const verifyAdmin = async (req, res, next)=>{
       const requester = req.decoded.email;
@@ -184,6 +186,33 @@ async function run() {
       const result = await travelCollection.deleteOne(query);
       res.json(result);
   });
+
+    //Blogs api
+    //get api
+    app.get('/blogs', async (req, res) => {
+      const cursor = BlogsCollection.find({});
+      const blogs = await cursor.toArray();
+      res.send(blogs);
+    });
+
+    //get single blog api
+    app.get('/blogs/:id', async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: ObjectId(id) };
+      const blog = await BlogsCollection.findOne(query);
+      res.send(blog);
+    });
+
+    //post api
+    app.post('/blogs', async (req, res) => {
+      const blog = req.body;
+      console.log('hit the post api', blog);
+
+      const result = await BlogsCollection.insertOne(blog);
+
+      console.log(result);
+      res.send(result);
+    });
 
 
     //Review api
