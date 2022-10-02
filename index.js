@@ -62,17 +62,7 @@ async function run() {
       }
     }
 
-    //auth
-
-    // app.post('/login', async(req, res)=>{
-    //   const user = req.body;
-    //   const accessToken = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, {
-    //     expiresIn: '1d'
-    //   });
-    //   res.send({accessToken});
-    // });
-
-    app.get('/user', verifyJWT, async (req, res)=>{
+    app.get('/user',  async (req, res)=>{
       const users = await userCollection.find().toArray();
       res.send(users);
     });
