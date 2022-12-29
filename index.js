@@ -50,6 +50,8 @@ async function run() {
     const userCollection = database.collection("users");
     const paymentCollection = database.collection('payment');
     const BlogsCollection = database.collection("blogs");
+    const BloodCollection = database.collection("blood");
+    const patientCollection = database.collection("patient");
 
     const verifyAdmin = async (req, res, next)=>{
       const requester = req.decoded.email;
@@ -202,6 +204,38 @@ async function run() {
 
       console.log(result);
       res.send(result);
+    });
+
+
+    //Blood api
+    //post api
+    app.post("/blood", async (req, res) => {
+      const blood = req.body;
+      console.log("hit the post api", blood);
+      const result = await BloodCollection.insertOne(blood);
+      res.json(result);
+    });
+
+    //get api
+    app.get("/blood", async (req, res) => {
+      const cursor = BloodCollection.find({});
+      const bloods = await cursor.toArray();
+      res.send(bloods);
+    });
+
+    //post api for patient
+    app.post("/patient", async (req, res) => {
+      const patient = req.body;
+      console.log("hit the post api", patient);
+      const result = await patientCollection.insertOne(patient);
+      res.json(result);
+    });
+
+    //get api for patient
+    app.get("/patient", async (req, res) => {
+      const cursor = patientCollection.find({});
+      const patients = await cursor.toArray();
+      res.send(patients);
     });
 
 
