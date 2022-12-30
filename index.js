@@ -52,6 +52,7 @@ async function run() {
     const BlogsCollection = database.collection("blogs");
     const BloodCollection = database.collection("blood");
     const patientCollection = database.collection("patient");
+    const userProfileCollection = database.collection("userProfile");
 
     const verifyAdmin = async (req, res, next)=>{
       const requester = req.decoded.email;
@@ -106,6 +107,36 @@ async function run() {
       );
       res.send({ result, token });
     });
+
+
+    //user profile api
+    app.post("/userProfile", async (req, res) => {
+      const userProfile = req.body;
+      const result = await userProfileCollection.insertOne(userProfile);
+      res.send(result);
+    });
+
+    //get user profile api
+    app.get("/userProfile", async (req, res) => {
+      const cursor = userProfileCollection.find({});
+      const userProfile = await cursor.toArray();
+      res.send(userProfile);
+    });
+
+    app.get("/userProfile", async (req, res) => {
+      const email = req.query.email;
+      const decodedEmail = req.decoded.email;
+      if (email === decodedEmail) {
+        const query = { email: email };
+        const cursor = userProfileCollection.find(query);
+        const userProfile = await cursor.toArray();
+        return res.send(userProfile);
+      }
+      else{
+        return res.status(403).send({message: 'Forbidden access'});
+      }
+    });
+
 
     //All Service api
 
