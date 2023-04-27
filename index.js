@@ -175,6 +175,26 @@ async function run() {
       res.send(result);
     });
 
+    // update api
+    app.put("/course/:id", async (req, res) => {
+      const courseId = req.params.id;
+      const courseUpdates = req.body;
+    
+      try {
+        const result = await courseCollection.updateOne(
+          { _id: ObjectId(courseId) },
+          { $set: courseUpdates }
+        );
+    
+        console.log(result);
+    
+        res.send(result);
+      } catch (err) {
+        console.error(err);
+        res.status(500).send("Error updating course.");
+      }
+    });
+
     //travel api
     //get api
     app.get("/travel", async (req, res) => {
